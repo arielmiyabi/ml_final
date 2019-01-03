@@ -41,8 +41,8 @@ img = np.reshape(img, [1, imgsize, imgsize, 1])
 
 sess=tf.Session()
 #First let's load meta graph and restore weights
-saver = tf.train.import_meta_graph('./model/model-2/40_model-40.meta')
-saver.restore(sess,tf.train.latest_checkpoint('./model/model-2/'))
+saver = tf.train.import_meta_graph('./model/model-/4300_model-4299.meta')
+saver.restore(sess,tf.train.latest_checkpoint('./model/model-/'))
 
 # Now, let's access and create placeholders variables and
 # create feed-dict to feed new data
@@ -57,8 +57,5 @@ op_to_restore = graph.get_tensor_by_name("generator/conv2d_transpose_6/Tanh:0")
 result = sess.run(op_to_restore, feed_dict={Input_sketch: img})
 
 fig = plot(result)
-plt.savefig('result/test/{}.png'.format(str(args.sketch.split('/')[-1]).zfill(3)), bbox_inches='tight')
+plt.savefig('result/test/{}'.format(str(args.sketch.split('/')[-1]).zfill(3)), bbox_inches='tight')
 plt.close(fig)
-
-#This will print 60 which is calculated
-#using new values of w1 and w2 and saved value of b1.
