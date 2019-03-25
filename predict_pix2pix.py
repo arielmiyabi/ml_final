@@ -17,23 +17,11 @@ parser.add_argument("--input_sketch", dest='sketch',  nargs='?',
 
 args = parser.parse_args()
 
-def plot(samples):
-    plt.cla()
-    fig = plt.figure(figsize=(4, 4))
-    gs = gridspec.GridSpec(4, 4)
-    gs.update(wspace=0.05, hspace=0.05)
+def plot(sample):
+    f_sample = np.asarray(sample).flatten()
+    normalized = (f_sample-min(f_sample))/(max(f_sample)-min(f_sample))*255
+    cv.imwrite('result/test/{}'.format(str(args.sketch.split('/')[-1]).zfill(3)), normalized.reshape(imgsize, imgsize))
 
-    for i, sample in enumerate(samples):
-        f_sample = np.asarray(sample).flatten()
-        normalized = (f_sample-min(f_sample))/(max(f_sample)-min(f_sample))
-        ax = plt.subplot(gs[i])
-        plt.axis('off')
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-        ax.set_aspect('equal')
-        plt.imshow(normalized.reshape(imgsize, imgsize), cmap='Greys_r')
-
-    return fig
 os.makedirs('result/test', exist_ok=True)
 img = cv.imread(args.sketch, cv.IMREAD_GRAYSCALE)/255
 img = cv.resize(img, (imgsize, imgsize))
@@ -56,6 +44,4 @@ op_to_restore = graph.get_tensor_by_name("generator/conv2d_transpose_6/Tanh:0")
 
 result = sess.run(op_to_restore, feed_dict={Input_sketch: img})
 
-fig = plot(result)
-plt.savefig('result/test/{}'.format(str(args.sketch.split('/')[-1]).zfill(3)), bbox_inches='tight')
-plt.close(fig)
+plot(result)

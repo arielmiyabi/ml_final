@@ -15,7 +15,7 @@ EPS = 1e-12
 lr = 0.0002
 beta1 = 0.5
 imgsize = 256
-MAX_ITER = 100000
+MAX_ITER = 10000
 
 def load_min_batch(batch_size=1, img_res=(imgsize, imgsize)):
     train_path = glob('./data/train_blur_data/*')
@@ -46,27 +46,18 @@ def load_min_batch(batch_size=1, img_res=(imgsize, imgsize)):
     return imgs_A, imgs_B
 def load_data(batch_size=1):
     data = glob("./data/test_blur_data/*")
-    label = glob("./data/test_blur_label/*")
     batch_data = np.random.choice(data, size=batch_size)
-    batch_label = np.random.choice(label, size=batch_size)
 
-    edge = []
     input_sketch = []
     for filename in batch_data:
         img = cv.imread(filename, cv.IMREAD_GRAYSCALE)/255
         img = cv.resize(img, (imgsize, imgsize))
         img = np.reshape(img, [imgsize, imgsize, 1])
         input_sketch.append(img)
-    for filename in batch_label:
-        img = cv.imread(filename, cv.IMREAD_GRAYSCALE)/255
-        img = cv.resize(img, (imgsize, imgsize))
-        img = np.reshape(img, [imgsize, imgsize, 1])
-        edge.append(img)
 
-    edge = np.array(edge)
     input_sketch = np.array(input_sketch)
 
-    return edge, input_sketch
+    return input_sketch
 def load_batch(batch_size=1):
     data = glob("./data/train_blur_data/*")
     label = glob("./data/train_blur_label/*")
@@ -136,12 +127,12 @@ def generator(x):
         U_6 = add_deconv_layer(U_5, G_l1, False , filters)
 
         print("gen deconv")
-        print (U_6.get_shape())
         print (U_1.get_shape())
         print (U_2.get_shape())
         print (U_3.get_shape())
         print (U_4.get_shape())
         print (U_5.get_shape())
+        print (U_6.get_shape())
         U_out = tf.layers.conv2d_transpose(U_6, 1, 4,strides=(2, 2), padding="same", activation=tf.nn.tanh)
         print (U_out.get_shape())
     return U_out
@@ -231,22 +222,8 @@ if __name__ == '__main__':
         if (iter+1)%100 == 0:
             modelname = "model/model-/" + str(iter+1) + "_model"
             saver.save(sess, modelname, global_step=iter)
-            test_edge, test_sketch = load_data(2)
+            test_sketch = load_data(2)
             result = sess.run(G_fake, feed_dict={Input_sketch: test_sketch})
             fig = plot(result)
             plt.savefig('result/train/{}.png'.format(str(iter+1).zfill(3)), bbox_inches='tight')
             plt.close(fig)
-
-    # for epoch in range(EPOCHS):
-    #     for batch_i, (edge, input_sketch) in enumerate(load_batch(BATCH_SIZE)):
-    #         _, D_loss_curr = sess.run([discrim_train, discrim_loss], feed_dict={Edge: edge, Input_sketch: input_sketch})
-    #         _, G_loss_curr = sess.run([gen_train, gen_loss], feed_dict={Edge: edge, Input_sketch: input_sketch})
-    #         elapsed_time = datetime.datetime.now() - start_time
-    #         print('Epoch %d batch %d D_loss is %.5f G_loss is %.5f. time: %s'%(epoch+1, batch_i, D_loss_curr, G_loss_curr, elapsed_time))
-    #     modelname = "model/model-/" + str(epoch) + "_model"
-    #     saver.save(sess, modelname, global_step=epoch)
-    #     test_edge, test_sketch = load_data(2)
-    #     result = sess.run(G_fake, feed_dict={Input_sketch: test_sketch})
-    #     fig = plot(result)
-    #     plt.savefig('result/train/{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
-    #     plt.close(fig)
